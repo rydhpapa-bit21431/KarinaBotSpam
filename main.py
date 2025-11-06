@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 import os
 import json
 import time
@@ -81,9 +84,17 @@ async def get_user_groups(user_client):
     dialogs = await user_client.get_dialogs()
     return [dialog for dialog in dialogs if dialog.is_group or dialog.is_channel]
 
+import sys
 import asyncio
 
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# Only set Windows policy when running on Windows
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    except Exception:
+        pass
+
+# Use a normal event loop (works on Linux & Windows)
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
@@ -551,7 +562,7 @@ async def main():
                 await client.connect()
                 if await client.is_user_authorized():
                     user_sessions[int(user_id_str)] = client
-    print("\n✅ Bot iniciado y escuchando eventos.")
+    logger.info("✅ Bot iniciado y escuchando eventos.")
     await bot.run_until_disconnected()
 
 if __name__ == "__main__":
